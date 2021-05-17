@@ -90,6 +90,8 @@ function draw()
 { 
   if(draw_finger_arm)
   {
+    rectY = height/2 + 1.0*PPCM
+    rectW = 1.0*PPCM
     background(255);           // clear background
     noCursor();                // hides the cursor to simulate the 'fat finger'
     
@@ -147,7 +149,7 @@ function drawRect() {
     stroke(0);
     textFont("Times");
     textAlign(CENTER)
-    text(letters[i], rectX + i*rectW + rectW/2, rectY + rectW - 7)
+    text(letters[i], rectX + i*rectW + rectW/2, rectY + rectW - rectW/4)
     noFill();
     rect(rectX + i*rectW, rectY, rectW, rectW);
     noStroke();
