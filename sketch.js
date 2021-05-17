@@ -43,9 +43,22 @@ let leftArrow, rightArrow;     // holds the left and right UI images for our bas
 let ARROW_SIZE;                // UI button size
 let current_letter = 'a';      // current char being displayed on our basic 2D keyboard (starts with 'a')
 
+
+/*********************** */
+let rectX = 100;
+let rectY = 490;
+let rectW = 40;
+let offSet = 0;
+let dragging = false;
+let N = 28;
+let current_word = "";
+let sugestion = "";
+
+
 // Runs once before the setup() and loads our data (images, phrases)
 function preload()
 {    
+  sugestions = loadStrings("data/simplified_count.txt")
   // Loads simulation images (arm, finger) -- DO NOT CHANGE!
   arm = loadImage("data/arm_watch.png");
   fingerOcclusion = loadImage("data/finger.png");
@@ -69,6 +82,8 @@ function setup()
   target_phrase = phrases[current_trial];
   
   drawUserIDScreen();       // draws the user input screen (student number and display size)
+
+  console.log(sugestions)
 }
 
 function draw()
@@ -78,10 +93,15 @@ function draw()
     background(255);           // clear background
     noCursor();                // hides the cursor to simulate the 'fat finger'
     
-    drawArmAndWatch();         // draws arm and watch background
+
     writeTargetAndEntered();   // writes the target and entered phrases above the watch
-    drawACCEPT();              // draws the 'ACCEPT' button that submits a phrase and completes a trial
     
+
+    /******************* */
+    if(!(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM))) {
+      dragging = false;
+    }
+
     // Draws the non-interactive screen area (4x1cm) -- DO NOT CHANGE SIZE!
     noStroke();
     fill(125);
@@ -89,18 +109,51 @@ function draw()
     textAlign(CENTER); 
     textFont("Arial", 16);
     fill(0);
-    text("NOT INTERACTIVE", width/2, height/2 - 1.3 * PPCM);
+    text(sugestion, width/2, height/2 - 1.3 * PPCM);
 
     // Draws the touch input area (4x3cm) -- DO NOT CHANGE SIZE!
     stroke(0, 255, 0);
     noFill();
     rect(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM);
+    if (mouseIsPressed && dragging) {
+      rectX = mouseX - offSet;
+    }
 
-    draw2Dkeyboard();       // draws our basic 2D keyboard UI
+    //Draws keyboard
+    drawRect();
 
+    //Draws sugestion button
+    fill(125);
+    rect(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 1.0*PPCM);
+    textAlign(CENTER); 
+    textFont("Arial", 16);
+    fill(0);
+    text("USE SUGGESTION", width/2, height/2 - 0.4 * PPCM);
+    //draw2Dkeyboard();       // draws our basic 2D keyboard UI
+    drawArmAndWatch();         // draws arm and watch background
+
+    drawACCEPT();              // draws the 'ACCEPT' button that submits a phrase and completes a trial
     drawFatFinger();        // draws the finger that simulates the 'fat finger' problem
+
   }
 }
+
+
+function drawRect() {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_`"
+  for (let i = 0; i < N; i++) {
+    textSize(38);
+    fill(0);
+    stroke(0);
+    textFont("Times");
+    textAlign(CENTER)
+    text(letters[i], rectX + i*rectW + rectW/2, rectY + rectW - 7)
+    noFill();
+    rect(rectX + i*rectW, rectY, rectW, rectW);
+    noStroke();
+  }
+}
+
 
 // Draws 2D keyboard UI (current letter and left and right arrows)
 function draw2Dkeyboard()
@@ -117,15 +170,85 @@ function draw2Dkeyboard()
   image(rightArrow, width/2, height/2, ARROW_SIZE, ARROW_SIZE);  
 }
 
+function getSugestion()
+{
+  if (current_letter == "_") 
+  {
+    current_word = ""
+    sugestion = ""
+  }
+  else if (current_letter == '`' && current_word.length > 0)
+  {      
+    current_word = current_word.substring(0, current_word.length - 1);
+  }
+  else 
+  {
+    current_word += current_letter
+  }
+  sugestion = ""
+  for (let i = 0; i < sugestions.length; i++)
+  {
+    for (let j = 0; j < current_word.length; j++)
+    {
+      if (sugestions[i][j] == current_word[j]) 
+      {
+        if (j == current_word.length - 1) 
+        {
+          sugestion = sugestions[i]
+          return
+        }
+        continue
+      }
+      else break
+    }
+  }
+}
+
+function mouseReleased()
+{
+  dragging = false;
+  let i = int((mouseX-rectX)/rectW)
+
+  if (mouseY > rectY && mouseY < rectY + rectW && startedDragging == rectX) {
+    const letters = "abcdefghijklmnopqrstuvwxyz_`"
+    console.log(mouseX, rectX, rectW, i)
+    current_letter = letters[i]
+
+    getSugestion()
+
+   // Click in whitespace indicates a character input (2D keyboard)
+   if (current_letter == '_') currently_typed += " ";                          // if underscore, consider that a space bar
+   else if (current_letter == '`' && currently_typed.length > 0)               // if `, treat that as delete
+     currently_typed = currently_typed.substring(0, currently_typed.length - 1);
+   else if (current_letter != '`') currently_typed += current_letter;          // if not any of the above cases, add the current letter to the entered phrase
+  }
+  console.log(sugestion, current_word)
+}
+
 // Evoked when the mouse button was pressed
 function mousePressed()
-{
+{ 
   // Only look for mouse presses during the actual test
   if (draw_finger_arm)
   {                   
     // Check if mouse click happened within the touch input area
     if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM))  
-    {      
+    {   
+      if (mouseX > rectX && mouseX < rectX + rectW*N && mouseY > rectY && mouseY < rectY + rectW) {
+        offSet = mouseX - rectX;
+        dragging = true;
+        startedDragging = rectX
+      }
+      if (mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 1.0*PPCM))
+      {
+        while (currently_typed.length > 0 && currently_typed[currently_typed.length - 1] != " ")
+        {
+          currently_typed = currently_typed.substring(0, currently_typed.length - 1);
+        }
+        currently_typed += sugestion + " ";
+        current_word = "";
+      }
+      /*
       // Check if mouse click was on left arrow (2D keyboard)
       if (mouseClickWithin(width/2 - ARROW_SIZE, height/2, ARROW_SIZE, ARROW_SIZE))
       {
@@ -146,6 +269,7 @@ function mousePressed()
           currently_typed = currently_typed.substring(0, currently_typed.length - 1);
         else if (current_letter != '`') currently_typed += current_letter;          // if not any of the above cases, add the current letter to the entered phrase
       }
+      */
     }
     
     // Check if mouse click happened within 'ACCEPT' 
@@ -165,6 +289,8 @@ function mousePressed()
       if (current_trial < 2)                                           
       {
         // Prepares for new trial
+        current_word = "";
+        sugestion = "";
         currently_typed = "";
         target_phrase = phrases[current_trial];  
       }
