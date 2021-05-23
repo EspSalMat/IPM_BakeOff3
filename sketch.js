@@ -39,7 +39,6 @@ let errors           = 0;      // a running total of the number of errors (when 
 let database;                  // Firebase DB
 let current_letter = 'a';      // current char being displayed on our basic 2D keyboard (starts with 'a')
 
-
 /*********************** */
 let circleX;
 let circleY;
@@ -49,7 +48,7 @@ let dragging = false;
 let startedDragging;
 let N = 28;
 let current_word = "";
-let sugestion = "";
+let sugestionList = ["","",""];
 const letters = "abcdefghijklmnopqrstuvwxyz"
 let spaceX;
 let spaceY;
@@ -111,7 +110,12 @@ function draw()
     textAlign(CENTER); 
     textFont("Arial", 16);
     fill(0);
-    text(sugestion, width/2, height/2 - 1.3 * PPCM);
+    text(sugestionList[0], width/2, height/2 - 1.3 * PPCM);
+    textAlign(LEFT, TOP);
+    //console.log(sugestionList[1]);
+    text(sugestionList[1], width/2 - 1.75*PPCM, height/2 - 1.9 * PPCM);
+    textAlign(RIGHT, TOP);
+    text(sugestionList[2], width/2 + 1.75*PPCM , height/2 - 1.9 * PPCM);
 
     // Draws the touch input area (4x3cm) -- DO NOT CHANGE SIZE!
     stroke(0, 255, 0);
@@ -120,11 +124,10 @@ function draw()
     if (mouseIsPressed && dragging) 
     {
       circleX = min(max(mouseX - offSet, width/2 - 1.5*PPCM),width/2 + 1.5*PPCM);
-      console.log(int((circleX - width/2 + 1.5*PPCM)*25/(3*PPCM)));
-      console.log(letters[int((circleX - (width/2 - 1.5*PPCM))*25/(3*PPCM))]);
       textFont("Arial", 24);
+      textAlign(CENTER, CENTER);
       fill(0);
-      text(letters[int((circleX - (width/2 - 1.5*PPCM))*25/(3*PPCM))], width/2, height/2+0.5*PPCM,);
+      text(letters[int((circleX - (width/2 - 1.5*PPCM))*25/(3*PPCM))], width/2, height/2 + 0.5*PPCM);
       noFill();
     }
 
@@ -133,12 +136,24 @@ function draw()
 
     //Draws sugestion button
     fill(125);
-    rect(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 1.0*PPCM);
-    textAlign(CENTER); 
+    stroke(0);
+    rect(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0/3*PPCM, 1.0*PPCM);
+    rect(width/2 - 2.0*PPCM + 4.0/3*PPCM, height/2 - 1.0*PPCM, 4.0/3*PPCM, 1.0*PPCM);
+    rect(width/2 - 2.0*PPCM  + 4.0/3*2*PPCM, height/2 - 1.0*PPCM, 4.0/3*PPCM, 1.0*PPCM);
+    textAlign(CENTER, CENTER); 
     textFont("Arial", 16);
     fill(0);
-    text("USE SUGGESTION", width/2, height/2 - 0.4 * PPCM);
+    noStroke();
+    text("^", width/2 - 2.0*PPCM + 4*PPCM/6, height/2 - 0.5 * PPCM);
+    text("^", width/2 - 2.0*PPCM + + 4.0/3*PPCM + 4*PPCM/6, height/2 - 0.5 * PPCM);
+    text("^", width/2 - 2.0*PPCM + 4.0/3*2*PPCM + 4*PPCM/6, height/2 - 0.5 * PPCM);
 
+    /*
+    textFont("Arial", 12);
+    text("a b c d e f g h i j", width/2, height/2 + 0.25*PPCM);
+    text("k l m n o p q r s t", width/2, height/2 + 0.5*PPCM);
+    text("    u v w x y z    ", width/2, height/2 + 0.75*PPCM);
+    */
     stroke(0);
     fill(125);
     imageMode(CENTER);
@@ -193,7 +208,12 @@ function drawRect() {
 
 function getSugestion()
 {
-  sugestion = ""
+  let n = 0;
+  /*console.log("Sugesting...");
+  for (let i = 0; i < sugestionList.length; i++)
+  {
+    sugestionList[i] = "";
+  }*/
   for (let i = 0; i < sugestions.length; i++)
   {
     for (let j = 0; j < current_word.length; j++)
@@ -202,8 +222,10 @@ function getSugestion()
       {
         if (j == current_word.length - 1 && j != sugestions[i].length - 1) 
         {
-          sugestion = sugestions[i]
-          return
+          if (n == 3) return;
+          sugestionList[n] = sugestions[i]
+          //console.log(sugestions[i]);
+          n++;
         }
         continue
       }
@@ -263,8 +285,22 @@ function mousePressed()
         {
           currently_typed = currently_typed.substring(0, currently_typed.length - 1);
         }
-        currently_typed += sugestion;
-        current_word = sugestion;
+        if (mouseX < width/2 - 2.0*PPCM + 4.0/3*PPCM) 
+        {
+          currently_typed += sugestionList[1];
+          current_word = sugestionList[1];
+        }
+        else if (mouseX > width/2 - 2.0*PPCM + 4.0/3*2*PPCM) 
+        {
+          currently_typed += sugestionList[2];
+          current_word = sugestionList[2];
+        }
+        else 
+        {
+          currently_typed += sugestionList[0];
+          current_word = sugestionList[0];
+        }
+        
         getSugestion();
       }
       /*
@@ -309,7 +345,10 @@ function mousePressed()
       {
         // Prepares for new trial
         current_word = "";
-        sugestion = "";
+        for (let i = 0; i < sugestionList.length; i++)
+        {
+          sugestionList[i] = "";
+        };
         currently_typed = "";
         target_phrase = phrases[current_trial];  
       }
@@ -318,7 +357,7 @@ function mousePressed()
         // The user has completed both phrases for one attempt
         draw_finger_arm = false;
         attempt_end_time = millis();
-        
+        CPS = (entered[0].length+entered[1].length)/((attempt_end_time-attempt_start_time)/1000);
         printAndSavePerformance();        // prints the user's results on-screen and sends these to the DB
         attempt++;
 
@@ -327,9 +366,12 @@ function mousePressed()
         {
           second_attempt_button = createButton('START 2ND ATTEMPT');
           second_attempt_button.mouseReleased(startSecondAttempt);
-          second_attempt_button.position(width/2 - second_attempt_button.size().width/2, height/2 + 200);
+          second_attempt_button.position(width/2 - second_attempt_button.size().width/2, height/2 + 250);
           current_word = "";
-          sugestion = "";
+          for (let i = 0; i < sugestionList.length; i++)
+          {
+            sugestionList[i] = "";
+          };
           currently_typed = "";
         }
       }
@@ -392,6 +434,7 @@ function printAndSavePerformance()
   text("Freebie errors: " + freebie_errors.toFixed(2), width / 2, height / 2 + h+40);
   text("Penalty: " + penalty.toFixed(2), width / 2, height / 2 + h+60);
   text("WPM with penalty: " + wpm_w_penalty.toFixed(2), width / 2, height / 2 + h+80);
+  text("CPS:  " + CPS.toFixed(2), width / 2, height / 2 + h+100);
 
   // Saves results (DO NOT CHANGE!)
   let attempt_data = 
