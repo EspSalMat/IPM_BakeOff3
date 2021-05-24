@@ -7,7 +7,7 @@
 
 // Database (CHANGE THESE!)
 const GROUP_NUMBER   = 24;      // add your group number here as an integer (e.g., 2, 3)
-const BAKE_OFF_DAY   = true;  // set to 'true' before sharing during the simulation and bake-off days
+const BAKE_OFF_DAY   = false;  // set to 'true' before sharing during the simulation and bake-off days
 
 let PPI, PPCM;                 // pixel density (DO NOT CHANGE!)
 let second_attempt_button;     // button that starts the second attempt (DO NOT CHANGE!)
@@ -45,9 +45,8 @@ let circleY;
 let circleW;
 let offSet = 0;
 let dragging = false;
-let startedDragging;
-let N = 28;
 let current_word = "";
+let last_word = "";
 let sugestionList = ["","",""];
 const letters = "abcdefghijklmnopqrstuvwxyz"
 let spaceX;
@@ -61,7 +60,8 @@ let deleteW;
 // Runs once before the setup() and loads our data (images, phrases)
 function preload()
 {    
-  sugestions = loadStrings("data/simplified_count.txt")
+  sugestions = loadStrings("data/simplified_count.txt");
+  sugestions2 = loadStrings("data/simplified_count2.txt");
   // Loads simulation images (arm, finger) -- DO NOT CHANGE!
   arm = loadImage("data/arm_watch.png");
   fingerOcclusion = loadImage("data/finger.png");
@@ -85,18 +85,19 @@ function setup()
   target_phrase = phrases[current_trial];
   
   drawUserIDScreen();       // draws the user input screen (student number and display size)
+  console.log(sugestions2);
+
 }
 
 function draw()
 { 
   if(draw_finger_arm)
   {
+    console.log(last_word, current_word);
     background(255);           // clear background
     noCursor();                // hides the cursor to simulate the 'fat finger'
     
-
     writeTargetAndEntered();   // writes the target and entered phrases above the watch
-    
 
     /******************* */
     if(!(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM))) {
@@ -127,7 +128,8 @@ function draw()
       textFont("Arial", 24);
       textAlign(CENTER, CENTER);
       fill(0);
-      text(letters[int((circleX - (width/2 - 1.5*PPCM))*25/(3*PPCM))], width/2, height/2 + 0.5*PPCM);
+      current_letter = letters[int((circleX - (width/2 - 1.5*PPCM))*25/(3*PPCM))]
+      //text(current_letter, width/2, height/2 + 0.5*PPCM);
       noFill();
     }
 
@@ -148,12 +150,8 @@ function draw()
     text("^", width/2 - 2.0*PPCM + + 4.0/3*PPCM + 4*PPCM/6, height/2 - 0.5 * PPCM);
     text("^", width/2 - 2.0*PPCM + 4.0/3*2*PPCM + 4*PPCM/6, height/2 - 0.5 * PPCM);
 
-    /*
-    textFont("Arial", 12);
-    text("a b c d e f g h i j", width/2, height/2 + 0.25*PPCM);
-    text("k l m n o p q r s t", width/2, height/2 + 0.5*PPCM);
-    text("    u v w x y z    ", width/2, height/2 + 0.75*PPCM);
-    */
+    drawLetters();
+    
     stroke(0);
     fill(125);
     imageMode(CENTER);
@@ -173,12 +171,39 @@ function draw()
   }
 }
 
+function drawLetters() {
+  let squareSize = 2*PPCM/10
+  let x_border = width/2 - PPCM + squareSize/2;
+  let y_border = height/2 + ((PPCM-3*squareSize)/2)
+
+  let letter_index = 0;
+  textFont("Arial", 10);
+  textAlign(CENTER, CENTER);
+  for (let j = 0; j < 3; j++) {
+    for (let i = 0; i < 9; i++) {
+      if (!(j == 2 && (i > 7))) {
+        if (current_letter == letters[letter_index]) {
+          fill(0,255,0);
+        } else {
+          noFill();
+        }
+        rect(x_border + i*squareSize, y_border + j*squareSize, squareSize, squareSize);
+        fill(0);
+        noStroke();
+        text(letters[letter_index], x_border + i*squareSize + squareSize/2, y_border + j*squareSize + squareSize/2);
+        letter_index++;
+      } 
+    }
+  }
+}
+
 function drawSlider() {
   stroke(0);
   line(width/2 - 1.5*PPCM, height/2 + 1.5*PPCM, width/2 + 1.5*PPCM, height/2 + 1.5*PPCM);
   fill(0,0,255);
   stroke(0,0,255);
-  ellipse(circleX, circleY, circleW);
+  let xPosition = width/2 - 1.5*PPCM + int((circleX - (width/2 - 1.5*PPCM))/(3.0*PPCM/26))*(3.0*PPCM/26)
+  ellipse(xPosition, circleY, circleW);
   noFill();
   noStroke();
 }
@@ -209,11 +234,25 @@ function drawRect() {
 function getSugestion()
 {
   let n = 0;
-  /*console.log("Sugesting...");
-  for (let i = 0; i < sugestionList.length; i++)
+  for (let i = 0; i < sugestions2.length; i++)
   {
-    sugestionList[i] = "";
-  }*/
+    let test = last_word + " " + current_word;
+    for (let j = 0; j < test.length; j++)
+    {
+      if (sugestions2[i][j] == test[j]) 
+      {
+        if (j == test.length - 1 && j != sugestions2[i].length - 1) 
+        {
+          if (n == 3) return;
+          sugestionList[n] = sugestions2[i].split(" ")[1];
+          n++;
+        }
+        continue
+      }
+      else break
+    }
+  }
+
   for (let i = 0; i < sugestions.length; i++)
   {
     for (let j = 0; j < current_word.length; j++)
@@ -224,7 +263,6 @@ function getSugestion()
         {
           if (n == 3) return;
           sugestionList[n] = sugestions[i]
-          //console.log(sugestions[i]);
           n++;
         }
         continue
@@ -261,13 +299,14 @@ function mousePressed()
       {
         offSet = mouseX - circleX;
         dragging = true;
-        startedDragging = circleX;
       }
 
       if (mouseClickWithin(spaceX, spaceY, spaceW, spaceW))
       {
+        last_word = current_word;
         current_word = ""
         currently_typed += " ";
+        getSugestion();
       }           
 
       if (mouseClickWithin(deleteX, deleteY, deleteW, deleteW) && currently_typed.length > 0)
@@ -276,6 +315,9 @@ function mousePressed()
         let i = currently_typed.length - 1;
         while (i > -1 && currently_typed[i] != " ") i--;
         current_word = currently_typed.substring(i + 1, currently_typed.length);
+        let j = i - 1;
+        while (j > -1 && currently_typed[j] != " ") j--;
+        last_word = currently_typed.substring(j+1, i);
         getSugestion();
       }
 
