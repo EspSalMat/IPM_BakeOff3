@@ -94,6 +94,7 @@ function draw()
   if(draw_finger_arm)
   {
     console.log(last_word, current_word);
+    console.log(current_letter);
     background(255);           // clear background
     noCursor();                // hides the cursor to simulate the 'fat finger'
     
@@ -124,11 +125,11 @@ function draw()
     rect(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM);
     if (mouseIsPressed && dragging) 
     {
-      circleX = min(max(mouseX - offSet, width/2 - 1.5*PPCM),width/2 + 1.5*PPCM);
+      circleX = min(max(mouseX - offSet, width/2 - 1.75*PPCM),width/2 + 1.75*PPCM);
       textFont("Arial", 24);
       textAlign(CENTER, CENTER);
       fill(0);
-      current_letter = letters[int((circleX - (width/2 - 1.5*PPCM))*25/(3*PPCM))]
+      current_letter = letters[int((circleX - (width/2 - 1.75*PPCM))*25/(3.5*PPCM))]
       //text(current_letter, width/2, height/2 + 0.5*PPCM);
       noFill();
     }
@@ -199,11 +200,12 @@ function drawLetters() {
 
 function drawSlider() {
   stroke(0);
-  line(width/2 - 1.5*PPCM, height/2 + 1.5*PPCM, width/2 + 1.5*PPCM, height/2 + 1.5*PPCM);
+  line(width/2 - 1.75*PPCM, height/2 + 1.5*PPCM, width/2 + 1.75*PPCM, height/2 + 1.5*PPCM);
   fill(0,0,255);
   stroke(0,0,255);
-  let xPosition = width/2 - 1.5*PPCM + int((circleX - (width/2 - 1.5*PPCM))/(3.0*PPCM/26))*(3.0*PPCM/26)
-  ellipse(xPosition, circleY, circleW);
+  let xPosition = width/2 - 1.75*PPCM + int((circleX - (width/2 - 1.75*PPCM))/(3.5*PPCM/26))*(3.5*PPCM/26)
+  rect(xPosition - 0.1*PPCM, circleY - 0.25*PPCM, 0.2*PPCM, 0.5*PPCM, 2, 2, 2, 2)
+  //ellipse(xPosition, circleY, circleW);
   noFill();
   noStroke();
 }
@@ -274,12 +276,10 @@ function getSugestion()
 
 function mouseReleased()
 {
-  let i = int((circleX - width/2 + 1.5*PPCM)*25/(3*PPCM));
 
   if (dragging) 
   {
     dragging = false;
-    current_letter = letters[i]
     current_word += current_letter;
     currently_typed += current_letter;          // if not any of the above cases, add the current letter to the entered phrase
     getSugestion();
@@ -529,7 +529,7 @@ function windowResized()
   draw_finger_arm = true;
   attempt_start_time = millis();
 
-  circleX = width/2 - 1.5*PPCM;
+  circleX = width/2 - 1.75*PPCM;
   circleY = height/2 + 1.5*PPCM;
   circleW = 0.75*PPCM;
   spaceX = width/2 - 2*PPCM; 
