@@ -56,6 +56,14 @@ let deleteX;
 let deleteY;
 let deleteW;
 
+let y_corner;
+let x_corner;
+const qwerty = "acegikmoqsuwybdfhjlnprtvxz"
+//const qwerty = "abcdefghijklmnopqrstuvwxyz";
+let shifted = false;
+let maxDelay = 50;
+let delay = maxDelay;
+
 
 // Runs once before the setup() and loads our data (images, phrases)
 function preload()
@@ -93,8 +101,9 @@ function draw()
 { 
   if(draw_finger_arm)
   {
-    console.log(last_word, current_word);
-    console.log(current_letter);
+    delay++;
+    //console.log(last_word, current_word);
+    //console.log(current_letter);
     background(255);           // clear background
     noCursor();                // hides the cursor to simulate the 'fat finger'
     
@@ -135,36 +144,37 @@ function draw()
     }
 
     //Draws slider
-    drawSlider();
+    //drawSlider();
+    drawKeyboard();
 
     //Draws sugestion button
     fill(125);
     stroke(0);
-    rect(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0/3*PPCM, 1.0*PPCM);
-    rect(width/2 - 2.0*PPCM + 4.0/3*PPCM, height/2 - 1.0*PPCM, 4.0/3*PPCM, 1.0*PPCM);
-    rect(width/2 - 2.0*PPCM  + 4.0/3*2*PPCM, height/2 - 1.0*PPCM, 4.0/3*PPCM, 1.0*PPCM);
+    rect(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0/3*PPCM, 0.5*PPCM);
+    rect(width/2 - 2.0*PPCM + 4.0/3*PPCM, height/2 - 1.0*PPCM, 4.0/3*PPCM, 0.5*PPCM);
+    rect(width/2 - 2.0*PPCM  + 4.0/3*2*PPCM, height/2 - 1.0*PPCM, 4.0/3*PPCM, 0.5*PPCM);
     textAlign(CENTER, CENTER); 
     textFont("Arial", 16);
     fill(0);
     noStroke();
-    text("^", width/2 - 2.0*PPCM + 4*PPCM/6, height/2 - 0.5 * PPCM);
-    text("^", width/2 - 2.0*PPCM + + 4.0/3*PPCM + 4*PPCM/6, height/2 - 0.5 * PPCM);
-    text("^", width/2 - 2.0*PPCM + 4.0/3*2*PPCM + 4*PPCM/6, height/2 - 0.5 * PPCM);
+    text("^", width/2 - 2.0*PPCM + 4*PPCM/6, height/2 - 0.75 * PPCM);
+    text("^", width/2 - 2.0*PPCM + + 4.0/3*PPCM + 4*PPCM/6, height/2 - 0.75 * PPCM);
+    text("^", width/2 - 2.0*PPCM + 4.0/3*2*PPCM + 4*PPCM/6, height/2 - 0.75 * PPCM);
 
-    drawLetters();
+    //drawLetters();
     
     stroke(0);
     fill(125);
     imageMode(CENTER);
     image(arm, width/2, height/2, ARM_LENGTH, ARM_HEIGHT);
     
-    rect(spaceX, spaceY, spaceW);
-    rect(deleteX, deleteY, deleteW);
+    //rect(spaceX, spaceY, spaceW);
+    //rect(deleteX, deleteY, deleteW);
     
-    imageMode(CORNER);
-    tint(255);
-    image(backspace, deleteX + deleteW*0.125, deleteY + deleteW*0.125, deleteW*0.75, deleteW*0.75);
-    image(space, spaceX + spaceW*0.125, spaceY + spaceW*0.125, spaceW*0.75, spaceW*0.75);
+    //imageMode(CORNER);
+    //tint(255);
+    //image(backspace, deleteX + deleteW*0.125, deleteY + deleteW*0.125, deleteW*0.75, deleteW*0.75);
+    //image(space, spaceX + spaceW*0.125, spaceY + spaceW*0.125, spaceW*0.75, spaceW*0.75);
     drawArmAndWatch();         // draws arm and watch background
 
     drawACCEPT();              // draws the 'ACCEPT' button that submits a phrase and completes a trial
@@ -198,6 +208,47 @@ function drawLetters() {
   }
 }
 
+function drawKeyboard() {
+  for (let i = 0; i < 3; i++) 
+  {
+    for (let j = 0; j < 5; j++)
+    {
+      stroke(0);
+      noFill();
+      rect(x_corner + j*(4.0/5*PPCM), y_corner + i*(2.5/3*PPCM), 4.0/5*PPCM, 2.5/3*PPCM);
+      if (!(i==2 && j>2)) 
+      {
+        fill(0);
+        noStroke();
+        textAlign(LEFT, TOP);
+        textSize(20);
+        text(qwerty[i*5+j] , x_corner + j*(4.0/5*PPCM)+(4.0/5*PPCM)/16, y_corner + i*(2.5/3*PPCM)+(2.5/3*PPCM)/16);
+        textSize(20);
+        fill(0);
+        textAlign(RIGHT, BOTTOM);
+        text(qwerty[i*5+j+13] , x_corner + (j+1)*(4.0/5*PPCM)- (4.0/5*PPCM)/16, y_corner + (i+1)*(2.5/3*PPCM)-(2.5/3*PPCM)/16);
+        noFill();
+      } 
+      else if (j == 3)
+      {
+        fill(0);
+        noStroke();
+        textAlign(CENTER, CENTER);
+        textSize(12);
+        text("_" , x_corner + j*(4.0/5*PPCM)+(4.0/5*PPCM)/2, y_corner + i*(2.5/3*PPCM)+(2.5/3*PPCM)/2);
+      }
+      else if (j == 4)
+      {
+        fill(0);
+        noStroke();
+        textAlign(CENTER, CENTER);
+        textSize(12);
+        text("Del" , x_corner + j*(4.0/5*PPCM)+(4.0/5*PPCM)/2, y_corner + i*(2.5/3*PPCM)+(2.5/3*PPCM)/2);
+      }
+    }
+  }
+}
+
 function drawSlider() {
   stroke(0);
   line(width/2 - 1.75*PPCM, height/2 + 1.5*PPCM, width/2 + 1.75*PPCM, height/2 + 1.5*PPCM);
@@ -208,29 +259,6 @@ function drawSlider() {
   //ellipse(xPosition, circleY, circleW);
   noFill();
   noStroke();
-}
-
-function drawRect() {
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_`"
-  for (let i = 0; i < letters.length; i++) {
-    textSize(38);
-    if (circleX + i*keyboardW < width/2 - 2.0*PPCM - keyboardW || circleX + i*keyboardW > width/2 + 2.0*PPCM + keyboardW) 
-    {
-      stroke(255);
-      fill(255);
-    }
-    else 
-    {
-      stroke(0);
-      fill(0);
-    }
-    textFont("Times");
-    textAlign(CENTER)
-    text(letters[i], circleX + i*keyboardW + keyboardW/2, circleX + keyboardW - keyboardW/4)
-    noFill();
-    rect(circleX + i*keyboardW, circleX, keyboardW, keyboardW);
-    noStroke();
-  }
 }
 
 function getSugestion()
@@ -274,18 +302,46 @@ function getSugestion()
   }
 }
 
-function mouseReleased()
+function pressedKey()
 {
-
-  if (dragging) 
+  let j = int((mouseX-x_corner)/(4.0*PPCM/5));
+  let i = int((mouseY-y_corner)/(2.5*PPCM/3));
+  if (!(i==2 && j>2)) 
   {
-    dragging = false;
+    if (current_letter == qwerty[i*5+j] && delay < maxDelay)
+    {
+      current_letter = qwerty[i*5+j+13];
+      currently_typed = currently_typed.substring(0, currently_typed.length - 1)
+      current_word = current_word.substring(0, current_word.length - 1)
+    }
+    else
+    {
+      current_letter = qwerty[i*5+j];
+    }
     current_word += current_letter;
-    currently_typed += current_letter;          // if not any of the above cases, add the current letter to the entered phrase
-    getSugestion();
+    currently_typed += current_letter;
   }
+  if (i==2 && j == 3)
+  {
+    last_word = current_word;
+    current_word = "";
+    currently_typed += " ";
+  }
+  if (i == 2 && j ==4) 
+  { 
+    currently_typed = currently_typed.substring(0, currently_typed.length - 1);
+    let k = currently_typed.length - 1;
+    while (k > -1 && currently_typed[k] != " ") k--;
+    current_word = currently_typed.substring(k + 1, currently_typed.length);
+    let l = k - 1;
+    while (l > -1 && currently_typed[l] != " ") l--;
+    last_word = currently_typed.substring(l+1, k);
+    current_letter = "";
+  }
+  delay = 0;
+  console.log(current_letter, last_word, current_word);
+  getSugestion();
 }
-
 // Evoked when the mouse button was pressed
 function mousePressed()
 { 
@@ -294,34 +350,13 @@ function mousePressed()
   {                   
     // Check if mouse click happened within the touch input area
     if(mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM))  
-    { 
-      if (mouseClickWithin(circleX - 0.5*PPCM, circleY - 0.5*PPCM, circleW + 0.5*PPCM, circleW + 0.5*PPCM)) 
+    {
+      if (mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 0.5*PPCM, 4.0*PPCM, 2.5*PPCM))
       {
-        offSet = mouseX - circleX;
-        dragging = true;
+        pressedKey();
       }
 
-      if (mouseClickWithin(spaceX, spaceY, spaceW, spaceW))
-      {
-        last_word = current_word;
-        current_word = ""
-        currently_typed += " ";
-        getSugestion();
-      }           
-
-      if (mouseClickWithin(deleteX, deleteY, deleteW, deleteW) && currently_typed.length > 0)
-      {
-        currently_typed = currently_typed.substring(0, currently_typed.length - 1);
-        let i = currently_typed.length - 1;
-        while (i > -1 && currently_typed[i] != " ") i--;
-        current_word = currently_typed.substring(i + 1, currently_typed.length);
-        let j = i - 1;
-        while (j > -1 && currently_typed[j] != " ") j--;
-        last_word = currently_typed.substring(j+1, i);
-        getSugestion();
-      }
-
-      if (mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 1.0*PPCM))
+      if (mouseClickWithin(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 0.5*PPCM))
       {
         while (currently_typed.length > 0 && currently_typed[currently_typed.length - 1] != " ")
         {
@@ -345,6 +380,7 @@ function mousePressed()
         
         getSugestion();
       }
+      
       /*
       // Check if mouse click was on left arrow (2D keyboard)
       if (mouseClickWithin(width/2 - ARROW_SIZE, height/2, ARROW_SIZE, ARROW_SIZE))
@@ -387,6 +423,7 @@ function mousePressed()
       {
         // Prepares for new trial
         current_word = "";
+        last_word = "";
         for (let i = 0; i < sugestionList.length; i++)
         {
           sugestionList[i] = "";
@@ -410,6 +447,7 @@ function mousePressed()
           second_attempt_button.mouseReleased(startSecondAttempt);
           second_attempt_button.position(width/2 - second_attempt_button.size().width/2, height/2 + 250);
           current_word = "";
+          last_word = "";
           for (let i = 0; i < sugestionList.length; i++)
           {
             sugestionList[i] = "";
@@ -538,5 +576,7 @@ function windowResized()
   deleteX = width/2 + PPCM;
   deleteY = spaceY;
   deleteW = spaceW;
+  y_corner = height/2 - 0.5*PPCM;
+  x_corner = width/2 - 2.0*PPCM;
 
 }
