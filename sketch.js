@@ -41,20 +41,21 @@ let current_letter = 'a';      // current char being displayed on our basic 2D k
 
 let current_word = "";
 let last_word = "";
-let sugestionList = ["","",""];
+let suggestionList = ["","",""];
 
 let y_corner;
 let x_corner;
 const qwerty = "qetuoadgjlxvnwryipsfhkzcbm"
 let maxDelay = 30;
 let delay = maxDelay;
+let started = false;
 
 
 // Runs once before the setup() and loads our data (images, phrases)
 function preload()
 {    
-  sugestions = loadStrings("data/simplified_count.txt");
-  sugestions2 = loadStrings("data/simplified_count2.txt");
+  suggestions = loadStrings("data/simplified_count.txt");
+  suggestions2 = loadStrings("data/simplified_count2.txt");
 
   // Loads simulation images (arm, finger) -- DO NOT CHANGE!
   arm = loadImage("data/arm_watch.png");
@@ -99,6 +100,13 @@ function draw()
 
     // Draws the non-interactive screen area (4x1cm) -- DO NOT CHANGE SIZE!
     printSuggestions();
+    if (!started)
+    {
+      fill(color(248,240,251));
+      textAlign(CENTER, CENTER); 
+      textFont("Arial", 16);
+      text("Multi-tap Keyboard", width/2, height/2 - 1.5 * PPCM);
+    }
 
     // Draws the touch input area (4x3cm) -- DO NOT CHANGE SIZE!
     drawSuggestionButtons();
@@ -121,18 +129,17 @@ function printSuggestions()
   textAlign(CENTER); 
   textFont("Arial", 16);
   fill(color(248,240,251));
-  text(sugestionList[0], width/2, height/2 - 1.3 * PPCM);
-  textFont("Arial", 16);
+  text(suggestionList[0], width/2, height/2 - 1.3 * PPCM);
   textAlign(LEFT, TOP);
-  if (sugestionList[1].length < 10)
-    text(sugestionList[1], width/2 - 1.75*PPCM, height/2 - 1.9 * PPCM);
+  if (suggestionList[1].length < 10)
+    text(suggestionList[1], width/2 - 1.75*PPCM, height/2 - 1.9 * PPCM);
   else
-    text("..." + sugestionList[1].substring(current_word.length, sugestionList[1].length), width/2 - 1.75*PPCM, height/2 - 1.9 * PPCM);
+    text("..." + suggestionList[1].substring(current_word.length, suggestionList[1].length), width/2 - 1.75*PPCM, height/2 - 1.9 * PPCM);
   textAlign(RIGHT, TOP);
-  if (sugestionList[2].length < 10)
-    text(sugestionList[2], width/2 + 1.75*PPCM , height/2 - 1.9 * PPCM);
+  if (suggestionList[2].length < 10)
+    text(suggestionList[2], width/2 + 1.75*PPCM , height/2 - 1.9 * PPCM);
   else
-    text("..." + sugestionList[2].substring(current_word.length, sugestionList[2].length), width/2 + 1.75*PPCM , height/2 - 1.9 * PPCM);
+    text("..." + suggestionList[2].substring(current_word.length, suggestionList[2].length), width/2 + 1.75*PPCM , height/2 - 1.9 * PPCM);
 }
 
 function drawSuggestionButtons() 
@@ -150,6 +157,7 @@ function drawSuggestionButtons()
   text("^", width/2 - 2.0*PPCM + + 4.0/3*PPCM + 4*PPCM/6, height/2 - 0.75 * PPCM);
   text("^", width/2 - 2.0*PPCM + 4.0/3*2*PPCM + 4*PPCM/6, height/2 - 0.75 * PPCM);
 }
+
 function drawKeyboard() {
   for (let i = 0; i < 3; i++) 
   {
@@ -189,20 +197,21 @@ function drawKeyboard() {
   }
 }
 
-function getSugestion()
+function getSuggestions()
 {
+  started = true;
   let n = 0;
-  for (let i = 0; i < sugestions2.length; i++)
+  for (let i = 0; i < suggestions2.length; i++)
   {
     let test = last_word + " " + current_word;
     for (let j = 0; j < test.length; j++)
     {
-      if (sugestions2[i][j] == test[j]) 
+      if (suggestions2[i][j] == test[j]) 
       {
-        if (j == test.length - 1 && j != sugestions2[i].length - 1) 
+        if (j == test.length - 1 && j != suggestions2[i].length - 1) 
         {
           if (n == 3) return;
-          sugestionList[n] = sugestions2[i].split(" ")[1];
+          suggestionList[n] = suggestions2[i].split(" ")[1];
           n++;
         }
         continue
@@ -211,16 +220,16 @@ function getSugestion()
     }
   }
 
-  for (let i = 0; i < sugestions.length; i++)
+  for (let i = 0; i < suggestions.length; i++)
   {
     for (let j = 0; j < current_word.length; j++)
     {
-      if (sugestions[i][j] == current_word[j]) 
+      if (suggestions[i][j] == current_word[j]) 
       {
-        if (j == current_word.length - 1 && j != sugestions[i].length - 1) 
+        if (j == current_word.length - 1 && j != suggestions[i].length - 1) 
         {
           if (n == 3) return;
-          sugestionList[n] = sugestions[i]
+          suggestionList[n] = suggestions[i]
           n++;
         }
         continue
@@ -267,7 +276,7 @@ function pressedKey()
     current_letter = "";
   }
   delay = 0;
-  getSugestion();
+  getSuggestions();
 }
 
 // Evoked when the mouse button was pressed
@@ -294,21 +303,21 @@ function mousePressed()
         }
         if (mouseX < width/2 - 2.0*PPCM + 4.0/3*PPCM) 
         {
-          currently_typed += sugestionList[1];
-          current_word = sugestionList[1];
+          currently_typed += suggestionList[1];
+          current_word = suggestionList[1];
         }
         else if (mouseX > width/2 - 2.0*PPCM + 4.0/3*2*PPCM) 
         {
-          currently_typed += sugestionList[2];
-          current_word = sugestionList[2];
+          currently_typed += suggestionList[2];
+          current_word = suggestionList[2];
         }
         else 
         {
-          currently_typed += sugestionList[0];
-          current_word = sugestionList[0];
+          currently_typed += suggestionList[0];
+          current_word = suggestionList[0];
         }
         
-        getSugestion();
+        getSuggestions();
       }
     }
     
@@ -331,9 +340,9 @@ function mousePressed()
         // Prepares for new trial
         current_word = "";
         last_word = "";
-        for (let i = 0; i < sugestionList.length; i++)
+        for (let i = 0; i < suggestionList.length; i++)
         {
-          sugestionList[i] = "";
+          suggestionList[i] = "";
         };
         currently_typed = "";
         target_phrase = phrases[current_trial];  
@@ -355,9 +364,9 @@ function mousePressed()
           second_attempt_button.position(width/2 - second_attempt_button.size().width/2, height/2 + 250);
           current_word = "";
           last_word = "";
-          for (let i = 0; i < sugestionList.length; i++)
+          for (let i = 0; i < suggestionList.length; i++)
           {
-            sugestionList[i] = "";
+            suggestionList[i] = "";
           };
           currently_typed = "";
         }
